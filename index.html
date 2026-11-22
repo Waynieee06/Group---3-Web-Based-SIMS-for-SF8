@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SF8 Web-Based SIMS</title>
+<style>
+:root{--ink:#1b2733;--blue:#456f37;--line:#c9d2dc;--bg:#eef2f6;--bad:#b3261e;--ok:#1d6b3a}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 "Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg)}
+header.top{background:var(--blue);color:#fff;padding:12px 20px}
+header.top h1{margin:0;font-size:18px}
+header.top p{margin:2px 0 0;font-size:12px;opacity:.9}
+main{display:grid;grid-template-columns:260px 1fr;gap:16px;padding:16px;max-width:1400px;margin:auto}
+main>section{min-width:0}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+@media(max-width:900px){.info{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:15px;color:var(--blue)}
+label{display:block;font-size:12px;font-weight:600;margin-bottom:2px}
+input,select,textarea{width:100%;padding:6px 8px;border:1px solid #9aa8b6;border-radius:4px;font:inherit;background:#fff}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+button{padding:7px 12px;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:4px;font:inherit;cursor:pointer}
+button.alt{background:#fff;color:var(--blue)}
+button.del{background:#fff;color:var(--bad);border-color:var(--bad)}
+button.sm{padding:2px 7px;font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.grade{font-weight:700;margin:10px 0 4px}
+.sec{display:flex;gap:4px;margin-bottom:4px}
+.sec .pick{flex:1;text-align:left;background:#fff;color:var(--ink);border-color:var(--line)}
+.sec .pick.on{background:#dce8f7;border-color:var(--blue);font-weight:700}
+.msg{color:var(--bad);font-size:12px;min-height:16px;margin-top:6px}
+details{font-size:13px} summary{cursor:pointer;font-weight:600;color:var(--blue)}
+.sheet{overflow-x:auto;color:#111;font-family:Arial,sans-serif}
+.official-header{display:grid;grid-template-columns:150px 1fr 150px;align-items:center;min-height:95px;margin-bottom:5px}
+.seal{text-align:center}
+.seal img{width:90px;height:90px;object-fit:contain;image-rendering:auto}
+.official-title{text-align:center}
+.official-title .agency{font-size:12px;font-weight:700;margin-bottom:5px}
+.official-title h3{margin:0;font-size:19px;line-height:1.15;color:#111}
+.official-title .sub{margin:3px 0 0;font-size:11px;font-weight:700;font-style:italic;color:#1f3f86}
+.deped-mark{text-align:center}
+.deped-mark img{width:110px;height:56px;object-fit:contain;image-rendering:auto}
+.info{display:grid;grid-template-columns:1.15fr 1.15fr 1.15fr 1.15fr .55fr;grid-auto-flow:dense;gap:4px 8px;font-size:11px;margin-bottom:8px;align-items:center}
+.info div{display:flex;align-items:center;gap:5px;min-width:0}
+.info .wide{grid-column:span 2}
+.info .track-field,.info .year-field{grid-column:span 2}
+.info b{display:block;min-height:22px;flex:1;border:1px solid #111;padding:3px 5px;color:#111;font-size:11px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.learner-table{table-layout:fixed;margin-top:0;margin-bottom:8px;font-size:10.5px}
+.learner-table th,.learner-table td{overflow:hidden}
+.learner-table th,.learner-table td{padding:3px 4px;height:27px}
+.learner-table th:nth-child(1){width:38px}.learner-table th:nth-child(2){width:92px}
+.learner-table th:nth-child(3){width:210px}.learner-table th:nth-child(4){width:82px}
+.learner-table th:nth-child(5){width:58px}.learner-table th:nth-child(6){width:62px}
+.learner-table th:nth-child(7){width:62px}.learner-table th:nth-child(8){width:62px}
+.learner-table th:nth-child(9){width:55px}.learner-table th:nth-child(10){width:110px}
+.learner-table th:nth-child(11){width:110px}.learner-table th:nth-child(12){width:115px}
+.learner-table th:nth-child(13){width:95px}
+.summary-title{text-align:center;font-size:16px;font-weight:800;margin:10px 0 7px}
+.summary-wrap{display:flex;gap:0;flex-wrap:nowrap}
+.summary-wrap table{width:100%;min-width:0;margin-bottom:0;font-size:10.5px}
+.summary-wrap th{height:38px;padding:2px 3px}
+.summary-wrap td{height:24px;padding:2px 4px}
+.summary-wrap td:first-child{font-weight:700}
+table{border-collapse:collapse;width:100%;font-size:12px;margin-bottom:12px}
+th,td{border:1px solid #111;padding:3px 5px;text-align:center}
+th{background:#e4ebf3}
+td.l{text-align:left}
+tr.grp td{background:#f3f6fa;font-weight:700;text-align:left}
+tr.tot td{font-weight:700;background:#f3f6fa}
+tr.grp td[colspan="12"],tr.tot td[colspan="12"]{border-right:0}
+tr.grp td[colspan="12"]+.noprint,tr.tot td[colspan="12"]+.noprint{border-left:0}
+.flag{color:var(--bad);font-weight:700}
+.sign{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:18px;margin-top:48px;font-size:11px;padding-bottom:28px}
+.sign div{flex:1;text-align:center}
+.sign span{display:block;margin-top:10px;border-top:1px solid #000;padding-top:4px;min-height:38px}
+.empty{padding:20px;text-align:center;color:#5b6b7b}
+.auth-shell{max-width:760px;margin:6vh auto;padding:16px}
+.auth-card{max-width:520px;margin:0 auto 14px}
+.auth-tabs{display:flex;gap:8px;margin-bottom:12px}
+.auth-tabs button{flex:1}
+.auth-tabs button.active{background:#fff;color:var(--blue)}
+.auth-note{padding:10px;background:#f3f6fa;border-left:3px solid var(--blue);font-size:13px;margin:10px 0}
+.student-shell{max-width:1000px;margin:16px auto;padding:0 16px}
+.student-record{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.user-tools{float:right;display:flex;align-items:center;gap:10px;font-size:12px}
+.user-tools button{border-color:#fff}
+.pending-item{border-top:1px solid var(--line);padding:10px 0}
+@media print{
+ @page{size:landscape;margin:8mm}
+ body{background:#fff}
+ header.top,aside,.noprint,.form{display:none!important}
+ main{display:block;padding:0}
+ .card{border:0;padding:0;margin:0}
+ .sheet{overflow:visible}
+ .official-header{min-height:78px}
+ .seal{width:68px;height:68px}
+ .seal img{width:76px;height:76px}
+ .official-title h3{font-size:16px}
+ .official-title .agency{font-size:10px}
+ .deped-mark img{width:100px;height:51px}
+ .info{font-size:9.5px;margin-bottom:6px}
+ .info b{min-height:18px;font-size:9.5px}
+ .learner-table{font-size:9.5px;margin-bottom:8px}
+ .learner-table th,.learner-table td{padding:2px 3px}
+ .learner-table tr.grp td[colspan="12"],.learner-table tr.tot td[colspan="12"]{border-right:1px solid #111}
+ .summary-title{font-size:13px;margin:6px 0}
+ .summary-wrap table{font-size:8.5px}
+ .sign{font-size:9px;margin-top:34px;padding-bottom:18px}
+ th{background:#e4ebf3!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<section class="auth-shell" id="authGate">
+ <div class="card auth-card" id="authCard">
+  <h2>SF8 Account</h2>
+  <div class="auth-tabs">
+   <button id="loginTab" class="active" type="button" onclick="showAuthMode('login')">Log in</button>
+   <button id="signupTab" class="alt" type="button" onclick="showAuthMode('signup')">Sign up</button>
+  </div>
+  <div id="loginPanel">
+   <label for="loginEmail">Email</label><input id="loginEmail" type="email" autocomplete="username">
+   <label for="loginPassword" style="margin-top:8px">Password</label><input id="loginPassword" type="password" autocomplete="current-password">
+   <div class="row"><button type="button" onclick="login()">Log in</button></div>
+  </div>
+  <div id="signupPanel" hidden>
+   <label for="signupRole">Account type</label>
+   <select id="signupRole" onchange="toggleSignupFields()">
+    <option value="student">Student</option><option value="teacher">Teacher</option><option value="admin">Administrative Staff</option>
+   </select>
+   <label for="signupEmail" style="margin-top:8px">Email</label><input id="signupEmail" type="email" autocomplete="email">
+   <label for="signupPassword" style="margin-top:8px">Password (minimum of 6 characters)</label><input id="signupPassword" type="password" minlength="6" maxlength="72" autocomplete="new-password">
+   <div id="studentSignupFields" style="margin-top:12px">
+    <div class="auth-note">Your learner record stays pending until school staff verifies your LRN and approves the request.</div>
+    <div class="grid">
+     <div><label for="appLrn">LRN (12 digits)</label><input id="appLrn" inputmode="numeric" maxlength="12"></div>
+     <div><label for="appLn">Last name</label><input id="appLn"></div>
+     <div><label for="appFn">First name</label><input id="appFn"></div>
+     <div><label for="appMn">Middle name</label><input id="appMn"></div>
+     <div><label for="appSex">Sex</label><select id="appSex"><option value="">Select</option><option value="M">Male</option><option value="F">Female</option></select></div>
+     <div><label for="appBd">Birthdate</label><input id="appBd" type="date"></div>
+     <div><label for="appWd">Date of weighing</label><input id="appWd" type="date"></div>
+     <div><label for="appKg">Weight (kg)</label><input id="appKg" type="number" step="0.1" min="10" max="200"></div>
+     <div><label for="appHt">Height (m)</label><input id="appHt" type="number" step="0.01" min="0.8" max="2.3"></div>
+     <div><label for="appRm">Remarks (optional)</label><input id="appRm" maxlength="255"></div>
+    </div>
+   </div>
+   <div id="staffSignupNotice" class="auth-note" hidden>Teacher and administrative-staff accounts require administrator approval.</div>
+   <div class="row"><button type="button" onclick="signup()">Create account</button></div>
+  </div>
+  <div class="msg" id="authMsg" role="status" aria-live="polite"></div>
+ </div>
+ <div class="card auth-card" id="pendingStatus" hidden>
+  <h2>Approval pending</h2><p id="pendingMessage"></p>
+  <div class="row"><button class="alt" type="button" onclick="logout()">Log out</button></div>
+ </div>
+</section>
+<div id="appShell" hidden>
+<header class="top">
+ <div class="user-tools"><span id="userLabel"></span><button class="alt sm" type="button" onclick="logout()">Log out</button></div>
+ <h1>School Form 8 (SF8) - Learner's Basic Health and Nutrition Report</h1>
+ <p>Web-Based Student Information Management System</p>
+</header>
+
+<main>
+<aside>
+ <div class="card">
+  <details>
+   <summary>How to use</summary>
+   <ol style="padding-left:18px;margin:8px 0 0">
+    <li>Fill in School Information.</li>
+    <li>Add a section (grade, name, adviser).</li>
+    <li>Click the section in the list.</li>
+    <li>Add each learner's data. Computed fields fill in by themselves.</li>
+    <li>Click Print SF8. Export a backup when you are done.</li>
+   </ol>
+  </details>
+ </div>
+
+ <div class="card">
+  <h2>School Information</h2>
+  <label for="sRegion">Region</label><input id="sRegion">
+  <label for="sDiv" style="margin-top:6px">Division</label><input id="sDiv">
+  <label for="sDistrict" style="margin-top:6px">District</label><input id="sDistrict">
+  <label for="sName" style="margin-top:6px">School name</label><input id="sName">
+  <label for="sId" style="margin-top:6px">School ID</label><input id="sId">
+  <label for="sYear" style="margin-top:6px">School year</label><input id="sYear" placeholder="2026-2027">
+ </div>
+
+ <div class="card">
+  <h2>Sections</h2>
+  <label for="gSel">Grade level</label>
+  <select id="gSel"><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
+  <div id="trackField" style="margin-top:6px" hidden>
+   <label for="trackName">Track/Strand (optional)</label><input id="trackName" placeholder="e.g. STEM">
+  </div>
+  <label for="secName" style="margin-top:6px">Section name</label><input id="secName">
+  <label for="secAdv" style="margin-top:6px">Adviser</label><input id="secAdv">
+  <div class="row"><button onclick="addSection()">Add section</button></div>
+  <div class="msg" id="secMsg"></div>
+  <div id="secList"></div>
+ </div>
+
+ <div class="card">
+  <h2>Backup</h2>
+  <div class="row" style="margin-top:0">
+   <button class="alt" onclick="exportData()">Export backup</button>
+   <button class="alt" onclick="document.getElementById('imp').click()">Import backup</button>
+  </div>
+  <input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)">
+ </div>
+</aside>
+
+<section>
+ <div class="card form" id="formCard" style="display:none">
+  <h2 id="formTitle">Add learner</h2>
+  <div class="grid">
+   <div><label for="lrn">LRN (12 digits)</label><input id="lrn" inputmode="numeric" maxlength="12"></div>
+   <div><label for="ln">Last name</label><input id="ln"></div>
+   <div><label for="fn">First name</label><input id="fn"></div>
+   <div><label for="mn">Middle name</label><input id="mn"></div>
+   <div><label for="sex">Sex</label><select id="sex"><option value="">Select</option><option value="M">Male</option><option value="F">Female</option></select></div>
+   <div><label for="bd">Birthdate</label><input type="date" id="bd"></div>
+   <div><label for="wd">Date of weighing</label><input type="date" id="wd"></div>
+   <div><label for="kg">Weight (kg)</label><input type="number" id="kg" step="0.1" min="0"></div>
+   <div><label for="ht">Height (m)</label><input type="number" id="ht" step="0.01" min="0" placeholder="1.52"></div>
+   <div><label for="rm">Remarks</label><input id="rm"></div>
+  </div>
+  <div class="row">
+   <button onclick="saveLearner()" id="saveBtn">Save learner</button>
+   <button class="alt" onclick="clearForm()">Clear</button>
+  </div>
+  <div class="msg" id="formMsg"></div>
+ </div>
+
+ <div class="card">
+  <div class="row noprint" style="margin:0 0 10px" id="tools" hidden>
+   <button onclick="window.print()">Print SF8</button>
+  </div>
+  <div class="sheet" id="sheet"><div class="empty">Add a section on the left, then click it to start.</div></div>
+ </div>
+</section>
+</main>
+</div>
+<section class="student-shell" id="studentWorkspace" hidden>
+ <div class="card">
+  <h2>My learner information</h2>
+  <p id="studentClass" class="auth-note"></p>
+  <div class="student-record">
+   <div><label for="stLrn">LRN</label><input id="stLrn" readonly></div>
+   <div><label for="stLn">Last name</label><input id="stLn" maxlength="60"></div>
+   <div><label for="stFn">First name</label><input id="stFn" maxlength="60"></div>
+   <div><label for="stMn">Middle name</label><input id="stMn" maxlength="60"></div>
+   <div><label for="stSex">Sex</label><select id="stSex"><option value="M">Male</option><option value="F">Female</option></select></div>
+   <div><label for="stBd">Birthdate</label><input id="stBd" type="date"></div>
+   <div><label for="stWd">Date of weighing</label><input id="stWd" type="date"></div>
+   <div><label for="stKg">Weight (kg)</label><input id="stKg" type="number" step="0.1" min="10" max="200"></div>
+   <div><label for="stHt">Height (m)</label><input id="stHt" type="number" step="0.01" min="0.8" max="2.3"></div>
+   <div><label for="stRm">Remarks</label><input id="stRm" maxlength="255"></div>
+  </div>
+  <div class="row"><button type="button" onclick="saveStudentProfile()">Save learner information</button></div>
+  <div class="msg" id="studentMsg" role="status" aria-live="polite"></div>
+ </div>
+</section>
+
+<script>
+/* ---------- 1. WHO 2007 cut-offs for ages 5 to 19 (one value per whole year) ----------
+   bmiM / bmiF = BMI-for-age:    [-3 SD, -2 SD, +1 SD, +2 SD]
+   hfaM / hfaF = Height-for-age: [-3 SD, -2 SD, +2 SD] in cm
+   Source: WHO Growth Reference 5-19 years, simplified field tables (z-scores). */
+const T={
+ bmiM:[[12.1,12.1,12.3,12.4,12.6,12.8,13.1,13.4,13.8,14.3,14.7,15.1,15.4,15.7,15.9],
+       [13.0,13.0,13.1,13.3,13.5,13.7,14.1,14.5,14.9,15.5,16.0,16.5,16.9,17.3,17.6],
+       [16.6,16.8,17.0,17.4,17.9,18.5,19.2,19.9,20.8,21.8,22.7,23.5,24.3,24.9,25.4],
+       [18.3,18.5,19.0,19.7,20.5,21.4,22.5,23.6,24.8,25.9,27.0,27.9,28.6,29.2,29.7]],
+ bmiF:[[11.8,11.7,11.8,11.9,12.1,12.4,12.7,13.2,13.6,14.0,14.4,14.6,14.7,14.7,14.7],
+       [12.7,12.7,12.7,12.9,13.1,13.5,13.9,14.4,14.9,15.4,15.9,16.2,16.4,16.4,16.5],
+       [16.9,17.0,17.3,17.7,18.3,19.0,19.9,20.8,21.8,22.7,23.5,24.1,24.5,24.8,25.0],
+       [18.9,19.2,19.8,20.6,21.5,22.6,23.7,25.0,26.2,27.3,28.2,28.9,29.3,29.5,29.7]],
+ hfaM:[[96.5,101.2,105.9,110.3,114.5,118.7,122.9,127.8,133.8,140.1,145.5,149.6,152.2,153.7,154.6],
+       [101.1,106.1,111.2,116.0,120.5,125.0,129.7,134.9,141.2,147.8,153.4,157.4,159.9,161.2,161.9],
+       [119.4,125.8,132.3,138.6,144.6,150.5,156.6,163.3,170.9,178.6,184.6,188.4,190.4,191.1,191.1]],
+ hfaF:[[95.3,99.8,104.4,109.2,114.2,119.4,125.1,130.7,135.6,139.0,141.0,142.2,142.8,143.2,143.5],
+       [100.1,104.9,109.9,115.0,120.3,125.8,131.7,137.6,142.5,145.9,147.9,148.9,149.5,149.8,150.1],
+       [119.1,125.4,131.7,138.2,144.7,151.4,158.3,164.9,170.3,173.7,175.4,176.1,176.2,176.3,176.2]]
+};
+const NS=['Severely Wasted','Wasted','Normal','Overweight','Obese'];
+const HFA=['Severely Stunted','Stunted','Normal','Tall'];
+
+/* ---------- 2. Saving and loading (browser-only) ---------- */
+const KEY='sf8_sims_v1';
+const ACCOUNT_KEY='sf8_sims_accounts_v1';
+const SESSION_KEY='sf8_sims_session_v1';
+const emptyDb=()=>({school:{region:'',division:'',district:'',name:'',id:'',year:''},sections:[],learners:[]});
+let db=emptyDb(), user=null, curSec=null, editId=null;
+
+function readLocalObject(key,fallback){
+ try{
+  const value=JSON.parse(localStorage.getItem(key));
+  return value||fallback;
+ }catch(e){return fallback;}
+}
+function getAccounts(){
+ const accounts=readLocalObject(ACCOUNT_KEY,[]);
+ if(!accounts.some(a=>a.email==='admin@sf8.local')){
+  accounts.push({email:'admin@sf8.local',password:'admin123',role:'admin',status:'active'});
+  localStorage.setItem(ACCOUNT_KEY,JSON.stringify(accounts));
+ }
+ return accounts;
+}
+function saveAccounts(accounts){localStorage.setItem(ACCOUNT_KEY,JSON.stringify(accounts));}
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(db));
+}
+function loadData(){
+ const saved=readLocalObject(KEY,null);
+ if(saved&&saved.school&&Array.isArray(saved.sections)&&Array.isArray(saved.learners))db=saved;
+}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function showAuthMode(mode){
+ const login=mode==='login';
+ $('loginPanel').hidden=!login;$('signupPanel').hidden=login;
+ $('loginTab').classList.toggle('active',login);$('signupTab').classList.toggle('active',!login);
+ $('authMsg').textContent='';
+}
+function toggleSignupFields(){
+ const student=$('signupRole').value==='student';
+ $('studentSignupFields').hidden=!student;$('staffSignupNotice').hidden=student;
+}
+function showPending(message){
+ $('authGate').hidden=false;$('authCard').hidden=true;$('pendingStatus').hidden=false;
+ $('pendingMessage').textContent=message;
+}
+function hidePending(){
+ $('pendingStatus').hidden=true;$('authCard').hidden=false;
+}
+async function login(){
+ const message=$('authMsg');message.textContent='';
+ const email=$('loginEmail').value.trim().toLowerCase(),password=$('loginPassword').value;
+ const account=getAccounts().find(a=>a.email===email);
+ if(!account||account.password!==password){message.textContent='Invalid email or password.';return;}
+ user={email:account.email,role:account.role,status:account.status};
+ localStorage.setItem(SESSION_KEY,JSON.stringify(user));
+ await openWorkspace();
+}
+async function signup(){
+ const message=$('authMsg');message.textContent='';
+ const role=$('signupRole').value;
+ const email=$('signupEmail').value.trim().toLowerCase(),password=$('signupPassword').value;
+ if(!email||password.length<6){message.textContent='Enter a valid email and a password with at least 6 characters.';return;}
+ const accounts=getAccounts();
+ if(accounts.some(a=>a.email===email)){message.textContent='An account with this email already exists.';return;}
+ const account={email,password,role,status:'active'};
+ if(role==='student'){
+  const lrn=$('appLrn').value.trim();
+  if(!/^\d{12}$/.test(lrn)){message.textContent='LRN must be exactly 12 digits.';return;}
+  account.learner={lrn,ln:$('appLn').value.trim(),fn:$('appFn').value.trim(),mn:$('appMn').value.trim(),
+   sex:$('appSex').value,bd:$('appBd').value,wd:$('appWd').value,kg:$('appKg').value,m:$('appHt').value,rm:$('appRm').value.trim()};
+ }
+ accounts.push(account);saveAccounts(accounts);
+ $('signupPassword').value='';
+ message.textContent='Account created. You can now log in.';
+ showAuthMode('login');
+}
+async function logout(){
+ user=null;
+ localStorage.removeItem(SESSION_KEY);
+ $('appShell').hidden=true;$('studentWorkspace').hidden=true;
+ $('authGate').hidden=false;hidePending();showAuthMode('login');
+ $('loginPassword').value='';$('authMsg').textContent='You have been logged out.';
+}
+async function openWorkspace(){
+ if(!user||user.status!=='active'){
+  const what=user&&user.role==='student'?'learner record':'account';
+  showPending('Your '+what+' is pending approval by school staff.');
+  return;
+ }
+ $('userLabel').textContent=user.email+' · '+(user.role==='admin'?'Administrator':user.role==='teacher'?'Teacher':'Student');
+ if(user.role==='student'){
+  $('appShell').hidden=true;$('studentWorkspace').hidden=true;
+  await loadStudentRecord();
+  $('authGate').hidden=true;$('studentWorkspace').hidden=false;
+  return;
+ }
+ $('studentWorkspace').hidden=true;$('appShell').hidden=true;
+ loadData();
+ bindSchoolFields();curSec=db.sections.length?db.sections[0].id:null;clearForm();renderAll();
+ $('authGate').hidden=true;$('appShell').hidden=false;
+}
+function bindSchoolFields(){
+ Object.keys(SF).forEach(id=>{
+  $(id).value=db.school[SF[id]]||'';
+  $(id).oninput=()=>{db.school[SF[id]]=$(id).value.trim();save();renderSheet();};
+ });
+}
+async function loadStudentRecord(){
+ const account=getAccounts().find(a=>a.email===user.email);
+ const l=account&&account.learner?account.learner:{lrn:'',ln:'',fn:'',mn:'',sex:'M',bd:'',wd:'',kg:'',m:'',rm:''};
+ const saved=db.learners.find(x=>x.lrn===l.lrn);
+ const record=saved?{lrn:saved.lrn,ln:saved.ln,fn:saved.fn,mn:saved.mn,sex:saved.sex,bd:saved.bd,wd:saved.wd,kg:saved.kg,m:saved.m,rm:saved.rm}:l;
+ const sec=db.sections.find(s=>s.id===saved?.sec);
+ $('stLrn').value=record.lrn;$('stLn').value=record.ln;$('stFn').value=record.fn;$('stMn').value=record.mn;
+ $('stSex').value=record.sex;$('stBd').value=record.bd;$('stWd').value=record.wd;
+ $('stKg').value=record.kg;$('stHt').value=record.m;$('stRm').value=record.rm;
+ const grade=sec?'Grade '+sec.grade+' · '+sec.name:'No section assigned';
+ $('studentClass').textContent=grade+' · Your LRN is linked to this account.';
+}
+async function saveStudentProfile(){
+ const learner={
+  lrn:$('stLrn').value,ln:$('stLn').value.trim(),fn:$('stFn').value.trim(),mn:$('stMn').value.trim(),
+  sex:$('stSex').value,bd:$('stBd').value,wd:$('stWd').value,kg:$('stKg').value,m:$('stHt').value,rm:$('stRm').value.trim()
+ };
+ const accounts=getAccounts();
+ const account=accounts.find(a=>a.email===user.email);
+ if(account)account.learner=learner;
+ saveAccounts(accounts);
+ const existing=db.learners.find(l=>l.lrn===learner.lrn);
+ if(existing){
+  Object.assign(existing,{ln:learner.ln,fn:learner.fn,mn:learner.mn,sex:learner.sex,bd:learner.bd,wd:learner.wd,kg:parseFloat(learner.kg)||0,m:parseFloat(learner.m)||0,rm:learner.rm});
+ }else if(learner.lrn){
+  db.learners.push({id:uid(),sec:null,...learner,kg:parseFloat(learner.kg)||0,m:parseFloat(learner.m)||0});
+ }
+ save();
+ $('studentMsg').textContent='Learner information saved.';
+}
+async function initialize(){
+ toggleSignupFields();
+ getAccounts();
+ loadData();
+ const savedUser=readLocalObject(SESSION_KEY,null);
+ if(savedUser&&savedUser.email)user=savedUser;
+ if(user)await openWorkspace();
+}
+
+/* ---------- 3. Computations ---------- */
+const r1=v=>Math.round(v*10)/10;
+// Fills in the months between whole-year values
+function at(a,mo){const x=Math.min(Math.max(mo/12-5,0),14),i=Math.min(Math.floor(x),13);return a[i]+(a[i+1]-a[i])*(x-i);}
+function ageMonths(bd,wd){
+ const [by,bm,bdDay]=bd.split('-').map(Number),[wy,wm,wdDay]=wd.split('-').map(Number);
+ let m=(wy-by)*12+wm-bm;
+ if(wdDay<bdDay)m--; return m;
+}
+function calc(l){
+ const mo=ageMonths(l.bd,l.wd),h2=l.m*l.m,bmi=r1(l.kg/h2);
+ const r={mo,h2,bmi,ns:null,hfa:null};
+ if(mo<60||mo>228)return r;                       // WHO tables cover 5 to 19 years only
+ const s=l.sex,b=T['bmi'+s].map(a=>r1(at(a,mo))),h=T['hfa'+s].map(a=>r1(at(a,mo))),cm=r1(l.m*100);
+ r.ns=bmi<b[0]?0:bmi<b[1]?1:bmi<=b[2]?2:bmi<=b[3]?3:4;
+ r.hfa=cm<h[0]?0:cm<h[1]?1:cm<=h[2]?2:3;
+ return r;
+}
+const ageTxt=mo=>Math.floor(mo/12)+' y '+(mo%12)+' m';
+
+/* ---------- 4. School info ---------- */
+const SF={sRegion:'region',sDiv:'division',sDistrict:'district',sName:'name',sId:'id',sYear:'year'};
+
+/* ---------- 5. Sections (grade level + section) ---------- */
+function addSection(){
+ const g=$('gSel').value,n=$('secName').value.trim(),a=$('secAdv').value.trim(),m=$('secMsg');
+ if(!n||!a){m.textContent='Enter the section name and the adviser.';return;}
+ if(db.sections.some(s=>s.grade===g&&s.name.toLowerCase()===n.toLowerCase())){m.textContent='This section already exists in that grade.';return;}
+ const track=['11','12'].includes(g)?$('trackName').value.trim():'';
+ const s={id:uid(),grade:g,name:n,adviser:a,track};
+ db.sections.push(s);save();m.textContent='';$('secName').value='';$('secAdv').value='';$('trackName').value='';
+ curSec=s.id;clearForm();renderAll();
+}
+function pickSection(id){curSec=id;clearForm();renderAll();}
+function delSection(id){
+ const s=db.sections.find(x=>x.id===id),n=db.learners.filter(l=>l.sec===id).length;
+ if(!confirm('Delete Grade '+s.grade+' - '+s.name+' and its '+n+' learner record(s)? This cannot be undone.'))return;
+ db.sections=db.sections.filter(x=>x.id!==id);db.learners=db.learners.filter(l=>l.sec!==id);
+ if(curSec===id)curSec=null;save();clearForm();renderAll();
+}
+function renderSections(){
+ let h='';
+ ['7','8','9','10','11','12'].forEach(g=>{
+  const list=db.sections.filter(s=>s.grade===g).sort((a,b)=>a.name.localeCompare(b.name));
+  if(!list.length)return;
+  h+='<div class="grade">Grade '+g+'</div>';
+  list.forEach(s=>{
+   h+='<div class="sec"><button class="pick'+(s.id===curSec?' on':'')+'" onclick="pickSection(\''+s.id+'\')">'+esc(s.name)+'</button>'+
+      '<button class="del sm" title="Delete section" onclick="delSection(\''+s.id+'\')">X</button></div>';
+  });
+ });
+ $('secList').innerHTML=h||'<p class="empty">No sections yet.</p>';
+}
+
+/* ---------- 6. Learner form ---------- */
+const F=['lrn','ln','fn','mn','sex','bd','wd','kg','ht','rm'];
+function clearForm(){
+ F.forEach(id=>$(id).value='');editId=null;
+ $('formTitle').textContent='Add learner';$('saveBtn').textContent='Save learner';$('formMsg').textContent='';
+}
+function saveLearner(){
+ const m=$('formMsg'),v={};F.forEach(id=>v[id]=$(id).value.trim());
+ const kg=parseFloat(v.kg),ht=parseFloat(v.ht),now=new Date();
+ const today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+ let e='';
+ if(!/^\d{12}$/.test(v.lrn))e='LRN must be exactly 12 digits.';
+ else if(db.learners.some(l=>l.lrn===v.lrn&&l.id!==editId))e='This LRN is already recorded.';
+ else if(!v.ln||!v.fn)e='Enter the last name and first name.';
+ else if(!v.sex)e='Select the sex.';
+ else if(!v.bd||!v.wd)e='Enter the birthdate and the date of weighing.';
+ else if(v.bd>=v.wd)e='The birthdate must be before the date of weighing.';
+ else if(v.wd>today)e='The date of weighing cannot be in the future.';
+ else if(!(kg>=10&&kg<=200))e='Weight must be from 10 to 200 kg.';
+ else if(!(ht>=0.8&&ht<=2.3))e='Height must be from 0.80 to 2.30 meters (example: 1.52).';
+ if(e){m.textContent=e;return;}
+ const rec={id:editId||uid(),sec:curSec,lrn:v.lrn,ln:v.ln,fn:v.fn,mn:v.mn,sex:v.sex,bd:v.bd,wd:v.wd,kg:kg,m:ht,rm:v.rm};
+ if(editId)db.learners=db.learners.map(l=>l.id===editId?rec:l);else db.learners.push(rec);
+ save();clearForm();renderSheet();
+}
+function editLearner(id){
+ const l=db.learners.find(x=>x.id===id);if(!l)return;
+ $('lrn').value=l.lrn;$('ln').value=l.ln;$('fn').value=l.fn;$('mn').value=l.mn;$('sex').value=l.sex;
+ $('bd').value=l.bd;$('wd').value=l.wd;$('kg').value=l.kg;$('ht').value=l.m;$('rm').value=l.rm;
+ editId=id;$('formTitle').textContent='Edit learner';$('saveBtn').textContent='Update learner';
+ $('formCard').scrollIntoView({behavior:'smooth'});
+}
+function delLearner(id){
+ const l=db.learners.find(x=>x.id===id);
+ if(!confirm('Delete the record of '+l.ln+', '+l.fn+'?'))return;
+ db.learners=db.learners.filter(x=>x.id!==id);if(editId===id)clearForm();save();renderSheet();
+}
+
+/* ---------- 7. The SF8 sheet ---------- */
+function rows(list,label){
+ let h='<tr class="grp"><td colspan="12">'+label+'</td><td class="noprint"></td></tr>';
+ list.forEach((l,i)=>{
+  const c=l.c;
+  const birth=l.bd ? (()=>{const [year,month,day]=l.bd.split('-');return month+'/'+day+'/'+year;})():'';
+  h+='<tr><td>'+(i+1)+'</td><td>'+l.lrn+'</td><td class="l">'+esc(l.ln+', '+l.fn+(l.mn?' '+l.mn:''))+'</td>'+
+   '<td>'+birth+'</td><td>'+ageTxt(c.mo)+'</td><td>'+l.kg.toFixed(1)+'</td><td>'+l.m.toFixed(2)+'</td>'+
+   '<td>'+c.h2.toFixed(4)+'</td><td>'+c.bmi.toFixed(1)+'</td>'+
+   '<td>'+(c.ns===null?'<span class="flag">Age out of range</span>':NS[c.ns])+'</td>'+
+   '<td>'+(c.hfa===null?'<span class="flag">Age out of range</span>':HFA[c.hfa])+'</td>'+
+   '<td class="l">'+esc(l.rm)+'</td>'+
+   '<td class="noprint"><button class="alt sm" onclick="editLearner(\''+l.id+'\')">Edit</button> <button class="del sm" onclick="delLearner(\''+l.id+'\')">Delete</button></td></tr>';
+ });
+ return h+'<tr class="tot"><td colspan="12" style="text-align:left">Total '+label.toLowerCase()+': '+list.length+'</td><td class="noprint"></td></tr>';
+}
+function count(list,key,n){const a=Array(n).fill(0);list.forEach(l=>{if(l.c[key]!==null)a[l.c[key]]++;});return a;}
+function sumTable(title,names,key,boys,girls){
+ const b=count(boys,key,names.length),g=count(girls,key,names.length);
+ let h='<table style="width:auto;min-width:360px"><tr><th>'+title+'</th><th>Boys</th><th>Girls</th><th>Total</th></tr>';
+ names.forEach((n,i)=>h+='<tr><td class="l">'+n+'</td><td>'+b[i]+'</td><td>'+g[i]+'</td><td>'+(b[i]+g[i])+'</td></tr>');
+ return h+'</table>';
+}
+function officialSummary(namesNS,namesHFA,keyNS,keyHFA,boys,girls){
+ const nsB=count(boys,keyNS,namesNS.length),nsG=count(girls,keyNS,namesNS.length);
+ const hfaB=count(boys,keyHFA,namesHFA.length),hfaG=count(girls,keyHFA,namesHFA.length);
+ let h='<table><tr>'+
+  '<th rowspan="2" style="width:13%">SEX</th>'+
+  '<th colspan="'+(namesNS.length+1)+'">Nutritional Status</th>'+
+  '<th colspan="'+(namesHFA.length+1)+'">Height for Age (HFA)</th></tr><tr>';
+ namesNS.forEach(n=>h+='<th>'+n.replace('Severely ','Severely<br>').replace('Wasted','Wasted').replace('Stunted','Stunted')+'</th>');
+ h+='<th>TOTAL</th>';
+ namesHFA.forEach(n=>h+='<th>'+n+'</th>');
+ h+='<th>TOTAL</th>';
+ h+='</tr>';
+ [['MALE',nsB,hfaB],['FEMALE',nsG,hfaG],['TOTAL',nsB.map((v,i)=>v+nsG[i]),hfaB.map((v,i)=>v+hfaG[i])]].forEach(row=>{
+  h+='<tr><td class="l" style="font-weight:700">'+row[0]+'</td>';
+  row[1].forEach(v=>h+='<td>'+v+'</td>');
+  h+='<td>'+row[1].reduce((a,b)=>a+b,0)+'</td>';
+  row[2].forEach(v=>h+='<td>'+v+'</td>');
+  h+='<td>'+row[2].reduce((a,b)=>a+b,0)+'</td>';
+  h+='</tr>';
+ });
+ return h+'</table>';
+}
+function renderSheet(){
+ const s=db.sections.find(x=>x.id===curSec);
+ $('formCard').style.display=s?'block':'none';$('tools').hidden=!s;
+ if(!s){$('sheet').innerHTML='<div class="empty">Add a section on the left, then click it to start.</div>';return;}
+ const all=db.learners.filter(l=>l.sec===s.id).map(l=>({...l,c:calc(l)}))
+  .sort((a,b)=>(a.ln+a.fn).localeCompare(b.ln+b.fn));
+ const boys=all.filter(l=>l.sex==='M'),girls=all.filter(l=>l.sex==='F'),sc=db.school;
+ $('sheet').innerHTML=
+  '<div class="official-header">'+
+   '<div class="seal"><img src="deped-seal-sf8.png?v=1" alt="DepEd official seal"></div>'+
+   '<div class="official-title"><div class="agency">Department of Education</div>'+
+   '<h3>School Form 8 Learner\'s Basic Health and Nutrition Report (SF8)</h3>'+
+   '<p class="sub">(For All Grade Levels)</p></div>'+
+   '<div class="deped-mark"><img src="deped-wordmark.svg?v=official" alt="Department of Education DepEd wordmark"></div>'+
+  '</div>'+
+  '<div class="info">'+
+   '<div class="wide">School Name:<b>'+esc(sc.name)+'</b></div>'+
+   '<div>District:<b>'+esc(sc.district||'')+'</b></div>'+
+   '<div>Division:<b>'+esc(sc.division)+'</b></div>'+
+   '<div>Region:<b>'+esc(sc.region)+'</b></div>'+
+   '<div>School ID:<b>'+esc(sc.id)+'</b></div>'+
+   '<div>Grade:<b>'+s.grade+'</b></div>'+
+   '<div class="wide">Section:<b>'+esc(s.name)+'</b></div>'+
+   '<div class="track-field">Track/Strand:<b>'+esc(s.track||'')+'</b></div>'+
+   '<div class="year-field">School Year:<b>'+esc(sc.year)+'</b></div>'+
+  '</div>'+
+  '<table class="learner-table"><tr><th rowspan="2">No.</th><th rowspan="2">LRN</th><th rowspan="2">Name of learner<br>(Last, First, Middle)</th>'+
+  '<th rowspan="2">Birthdate</th><th rowspan="2">Age</th><th rowspan="2">Weight<br>(kg)</th><th rowspan="2">Height<br>(m)</th>'+
+  '<th rowspan="2">Height&sup2;<br>(m&sup2;)</th><th rowspan="2">BMI</th><th colspan="2">Nutritional status</th>'+
+  '<th rowspan="2">Remarks</th><th rowspan="2" class="noprint">Action</th></tr>'+
+  '<tr><th>BMI for age</th><th>Height for age</th></tr>'+
+  rows(boys,'BOYS')+rows(girls,'GIRLS')+'</table>'+
+  '<div class="summary-title">SUMMARY TABLE</div>'+
+  '<div class="summary-wrap">'+officialSummary(NS,HFA,'ns','hfa',boys,girls)+'</div>'+
+   '<div class="sign">'+
+    '<div>Date of Assessment:<span></span></div>'+
+    '<div>Conducted/Assessed By:<span></span></div>'+
+    '<div>Certified Correct By:<span></span></div>'+
+    '<div>Reviewed By:<span></span></div>'+
+   '</div>';
+}
+function renderAll(){renderSections();renderSheet();}
+function updateTrackField(){
+ const isSHS=['11','12'].includes($('gSel').value);
+ $('trackField').hidden=!isSHS;
+ if(!isSHS)$('trackName').value='';
+}
+$('gSel').addEventListener('change',updateTrackField);
+updateTrackField();
+
+/* ---------- 8. Backup ---------- */
+function exportData(){
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,1)],{type:'application/json'}));
+ a.download='sf8-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href);
+}
+function importData(ev){
+ const f=ev.target.files[0];if(!f)return;const r=new FileReader();
+ r.onload=async()=>{
+  try{const d=JSON.parse(r.result);
+   if(!d.school||!Array.isArray(d.sections)||!Array.isArray(d.learners))throw 0;
+   if(db.sections.length||db.learners.length){alert('Backup import is only allowed when there are no sections or learners.');return;}
+   if(!confirm('Import this backup into the empty SF8 data?'))return;
+   db=d;save();Object.keys(SF).forEach(id=>$(id).value=db.school[SF[id]]||'');curSec=db.sections.length?db.sections[0].id:null;clearForm();renderAll();
+  }catch(e){alert('This file is not a valid SF8 backup.');}
+  ev.target.value='';
+ };
+ r.readAsText(f);
+}
+
+initialize();
+</script>
+</body>
+</html>
